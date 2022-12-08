@@ -27,8 +27,7 @@ This is on the TODO-list. If you're a developer, feel free to code it and create
 ## Input, issues or other discussions
 Feel free to make suggestions for changes or share your own improvements!
 
-Use Github or join the Norwegian home automation community here (english posts also welcome):
-https://www.hjemmeautomasjon.no/forums/
+Use Github or join the Norwegian home automation community [here](https://www.hjemmeautomasjon.no/forums/topic/11265-ios-widget-for-str%C3%B8mpris-uavhengig-av-str%C3%B8mleverand%C3%B8r/) (english posts also welcome).
 
 ## Hey, advanced users!
 If you want to edit and test your scripts on a computer and happen to have a Mac, you can try the [Scriptable Beta for Mac](https://scriptable.app/mac-beta/).
