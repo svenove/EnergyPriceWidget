@@ -18,8 +18,8 @@ Data is fetched from a free API, which does not require any registration/user ac
 
  Widget is now ready to use! :) 
 
-## What about other countries?
-There is an API for Sweden and Denmark too, but it's not currently supported by the widget. It's on the TODO-list! :)
+## What countries are supported?
+Norway, Sweden and Denmark.
 
 ## Widget for lock screen
 This is on the TODO-list. If you're a developer, feel free to code it and create a PR! :)
