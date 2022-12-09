@@ -2,80 +2,79 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: teal; icon-glyph: bolt;
 // EnergyPriceWidget
-// v1.0.0 - første versjon - Sven-Ove Bjerkan
+// v1.0.0 - first version - Sven-Ove Bjerkan
+// v1.0.1 - translated to English
 
-
-// Hvilken strømsone skal vises? 
+// Hvilken strømsone skal vises?
 // Gyldig verdier er: NO1, NO2, NO3, NO4 eller NO5
-
 // Sørøst-Norge, N01
 // Sørvest-Norge, N02
 // Midt-Norge, N03
 // Nord-Norge, N04
 // Vest-Norge, N05
 
-// Fortsatt usikker på hvilken sone du hører til? 
+// Fortsatt usikker på hvilken sone du hører til?
 // Se kart her: https://temakart.nve.no/prosjekt/f43d4457-d6a6-41e5-82aa-df12e42aa592
-const SONE = "NO3";
+// Power-zone
+const ZONE = "NO3";
 
-// Påslag i øre pr kWh på din strømavtale
-const PASLAG = 1;
+// The additional cost your powercompany charges for the power, in øre. Usually 0-5 øre.
+const ADDITION = 1;
 
-// Markere midnatt med en prikk i grafen?
-const MIDNATT = false;
+// Mark midnight with at dot in the graph? (true/false)
+const MIDNGHT = false;
 
-// HTML-koden for bakgrunnsfarge på widget (#000000 er svart)
-const BAKGRUNNSFARGE = "#000000";
+// HTML-code for background color of the widghet (#000000 is black)
+const BGCOLOR = "#000000";
 
-// HTML-koden for tekstfarge (#FFFFFF er hvit)
-const TEKSTFARGE = "#FFFFFF";
+// HTML-code for the text color (#FFFFFF is white)
+const TEXTCOLOR = "#FFFFFF";
 
-// Når prisen denne timen er høyere enn snittprisen i dag, så brukes denne tekstfargen (rød)
-const TEXTFARGE_HOY = "#de4035";
+// When the price this hour is higher than the average price for the day, use this textcolor (default is red)
+const TEXTCOLOR_HIGH = "#de4035";
 
-// Når prisen denne timen er lavere enn snittprisen i dag, så brukes denne tekstfargen (grønn)
-const TEXTFARGE_LAV = "#35de3b";
+// When the price this hour is lower than the average price for the day, use this textcolor (default is green)
+const TEXTCOLOR_LOW = "#35de3b";
 
-// Angi hvor mange timer bakover og fremover fra inneværende time den skal bruke
-const TIMER_BAKOVER = 3;
-const TIMER_FREMOVER = 21;
-
-
+// Define how many hours backwards and forward from the current hour to display
+const HOURS_BACK = 3;
+const HOURS_FORWARD = 21;
 
 
-// DU TRENGER IKKE ENDRE NOE LENGRE NED !
+
+
+// NO NEED TO CHANGE ANYTHING BELOW THIS!
 // --------------------------------------
 
 
-// Date-objekt for akkurat denne timen
+// Date-object for the current hour
 let d = new Date();
 d.setMinutes(0)
 d.setSeconds(0)
 d.setMilliseconds(0)
 
 let json, json2, json3, req;
-// I går (hvis den skal vise tilbake i tid helt til i går)
-if (d.getHours()-TIMER_BAKOVER < 0) {
+// Fetch yesterday (if HOURS_BACK point back beyond midnight)
+if (d.getHours()-HOURS_BACK < 0) {
   d2 = new Date()
   d2.setDate(d2.getDate()-1)
-  req = new Request("https://www.hvakosterstrommen.no/api/v1/prices/"+d2.getFullYear()+"/"+(d2.getMonth()+1)+"-"+pad(d2.getDate())+"_"+SONE+".json")
+  req = new Request("https://www.hvakosterstrommen.no/api/v1/prices/"+d2.getFullYear()+"/"+(d2.getMonth()+1)+"-"+pad(d2.getDate())+"_"+ZONE+".json")
   json = await req.loadString()
 }
 
-// I dag
-req = new Request("https://www.hvakosterstrommen.no/api/v1/prices/"+d.getFullYear()+"/"+(d.getMonth()+1)+"-"+pad(d.getDate())+"_"+SONE+".json")
+// Fetch today
+req = new Request("https://www.hvakosterstrommen.no/api/v1/prices/"+d.getFullYear()+"/"+(d.getMonth()+1)+"-"+pad(d.getDate())+"_"+ZONE+".json")
 json2 = await req.loadString()
 
-// I morgen (hvis klokka er mer enn 1300) og den skal vise så langt frem
-if (d.getHours() >= 13 && d.getHours() + TIMER_FREMOVER > 23) {
+// Fetch tomorrow (if time is after 13:00 and HOURS_FORWARD points beyond midnight)
+if (d.getHours() >= 13 && d.getHours() + HOURS_FORWARD > 23) {
   d2 = new Date()
   d2.setDate(d2.getDate()+1)
-  req = new Request("https://www.hvakosterstrommen.no/api/v1/prices/"+d2.getFullYear()+"/"+(d2.getMonth()+1)+"-"+pad(d2.getDate())+"_"+SONE+".json")
+  req = new Request("https://www.hvakosterstrommen.no/api/v1/prices/"+d2.getFullYear()+"/"+(d2.getMonth()+1)+"-"+pad(d2.getDate())+"_"+ZONE+".json")
   json3 = await req.loadString()
 }
 
-// merge i går og i dag
-// hvis i går finnes
+// Merge yesterday and today, if yesterday exist
 if (json != null) {
   json = json.slice(0, -1) + "," + json2.slice(1)
 }
@@ -83,8 +82,7 @@ else {
   json = json2
 }
 
-// merge i går/i dag og i morgen
-// hvis i morgen finnes
+// Merge yesterday/today with tomorrow, if tomorrow exists
 if (d.getHours() >= 13 && json3 != null && json != null && req.response.statusCode != 404) {
   json = json.slice(0, -1) + "," + json3.slice(1)
 }
@@ -92,28 +90,27 @@ else if (json == null) {
   json = json3;
 }
 
-
-// Array med alle timepriser
+// Array with all the prices
 let allPrices  = JSON.parse(json)
 
-
-// Loop for å finne array-key for inneværende time
+// Loop to find the array-key for current hour
 let iNow, iStart, iEnd, dLoop
 for (let i = 0; i < allPrices.length; i++) {
  dLoop = new Date(allPrices[i].time_start)
 
+ // Found current hour, set the time back and forward for the start and end of the graph
  if (d.getTime() == dLoop.getTime()) {
    iNow = i
-   iStart = (iNow-TIMER_BAKOVER)
-   iEnd = (iNow + TIMER_FREMOVER)
+   iStart = (iNow-HOURS_BACK)
+   iEnd = (iNow + HOURS_FORWARD)
    if (iEnd > allPrices.length) {
-	   iEnd = (allPrices.length-1)
+     iEnd = (allPrices.length-1)
    }
    break;
   }
 }
 
-// Loop for å finne snittpris
+// Loop to find average price
 let avgPrice = 0
 let minPrice = 100000
 let maxPrice = 0
@@ -121,34 +118,36 @@ let prices = [];
 let colors = [];
 let pointsize = [];
 
-// Finn neste midnatt
+// Find next midnight
 d.setHours(0);
 d.setDate(d.getDate()+1)
 
 for (let i = iStart; i <= iEnd; i++) {
-  // Legg til evt MVA
-  if (SONE != "NO4")
+  // Add 25% taxes if not zone=NO4
+  if (ZONE != "NO4")
   allPrices[i].NOK_per_kWh *= 1.25
-  
-  // legg til påslag
-  allPrices[i].NOK_per_kWh += (PASLAG/100)
-  
-  // gjør om tll øre
+
+  // Add the power company addition
+  allPrices[i].NOK_per_kWh += (ADDITION/100)
+
+  // Convert from kroner to øre
   allPrices[i].NOK_per_kWh *= 100
-  
+
   avgPrice += allPrices[i].NOK_per_kWh
   prices.push(Math.round(allPrices[i].NOK_per_kWh));
-    
+
   if (allPrices[i].NOK_per_kWh < minPrice)
     minPrice = Math.round(allPrices[i].NOK_per_kWh)
-   if (allPrices[i].NOK_per_kWh > maxPrice)
-     maxPrice = Math.round(allPrices[i].NOK_per_kWh)
+  if (allPrices[i].NOK_per_kWh > maxPrice)
+    maxPrice = Math.round(allPrices[i].NOK_per_kWh)
 
+  // Mark current hour in the graph
   if (i == iNow) {
     colors.push("'yellow'");
     pointsize.push(30);
   }
-  else if (MIDNATT && d.getTime() == new Date(allPrices[i].time_start).getTime()) {
+  // Mark midnight in the graph
+  else if (MIDNGHT && d.getTime() == new Date(allPrices[i].time_start).getTime()) {
     colors.push("'cyan'");
     pointsize.push(30);
   }
@@ -158,9 +157,9 @@ for (let i = iStart; i <= iEnd; i++) {
   }
 }
 
-  avgPrice = Math.round(avgPrice / prices.length)
+avgPrice = Math.round(avgPrice / prices.length)
 
-// Loop for å lage strek for snittprisen
+// Loop to create a line for the average price
 let dTemp
 let avgPrices = []
 let labels = []
@@ -171,6 +170,7 @@ for (let i = iStart; i <= iEnd; i++) {
   labels.push("'" + pad(hours) + "'");
 }
 
+// Generate the graph
 let url = "https://quickchart.io/chart?w=2400&h=1200&devicePixelRatio=1.0&c="
 url += encodeURI("{ \
    type:'line', \
@@ -239,56 +239,56 @@ url += encodeURI("{ \
 const GRAPH = await new Request(url).loadImage()
 
 
-// Hent ut pris i øre for inneværende time
+// Get the price for the current hour
 let priceOre = Math.round(allPrices[iNow].NOK_per_kWh)
 
-// Opprett widget
+// Create widget
 async function createWidget() {
   // Create new empty ListWidget instance
   let lw = new ListWidget();
 
   // Set new background color
-  lw.backgroundColor = new Color(BAKGRUNNSFARGE);
+  lw.backgroundColor = new Color(BGCOLOR);
 
-  // Man kan ikke styre når widget henter ny pris
-  // men, prøver her å be widget oppdatere seg etter 1 min over neste time
+  // It's not possible to control when the widget updates
+  // but we try to tell it to update one minute over the next hour
   var d = new Date();
   d.setHours(d.getHours() + 1);
   d.setMinutes(1);
-  // Prøv å oppdater litt senere for å få med morgendagens priser
+  // If prices for tomorrow should be available, wait a bit with the update
   if (d.getHours() == 13)
     d.setMinutes(15)
-    
+
   lw.refreshAfterDate = d;
 
-  // Legg til inneværende pris i v.kolonne
+  // Add current price above the graph
   let price = lw.addText("Pris nå: " + priceOre + " øre/kWh");
   price.centerAlignText();
   price.font = Font.lightSystemFont(20);
-  // Pris høyere eller lavere enn snitt avgjør farge
+  // Define text color based on price
   if (priceOre < avgPrice)
-    price.textColor = new Color(TEXTFARGE_LAV)
+    price.textColor = new Color(TEXTCOLOR_LOW)
   else if (priceOre > avgPrice)
-    price.textColor = new Color(TEXTFARGE_HOY)
+    price.textColor = new Color(TEXTCOLOR_HIGH)
 
-  // Legg til dagens "max | min"-timespris
+  // Add min/max price above the graph
   let maxmin = lw.addText("Min: " + minPrice + " øre/kWh | Max: " + maxPrice + " øre/kWh")
   maxmin.centerAlignText()
   maxmin.font = Font.lightSystemFont(12);
-  maxmin.textColor = new Color(TEKSTFARGE);
+  maxmin.textColor = new Color(TEXTCOLOR);
 
-  // Avstand ned til grafen
+  // A bit of space above graph
   lw.addSpacer(25)
 
-
   let overskrift = "Timepriser";
-  if (SONE == "NO4")
+  if (ZONE == "NO4")
     overskrift += " (eks MVA)"
   graphTxt = lw.addText(overskrift);
   graphTxt.centerAlignText();
   graphTxt.font = Font.lightSystemFont(16);
-  graphTxt.textColor = new Color(TEKSTFARGE);
+  graphTxt.textColor = new Color(TEXTCOLOR);
 
+  // A bit of space
   lw.addSpacer(10)
 
   let stackGraph = lw.addStack()
@@ -298,11 +298,11 @@ async function createWidget() {
   stackGraph.setPadding(0, 0, 0, 0)
 
 
-  // Avstand ned til bunntekst
+  // A bit of space below graph
   lw.addSpacer(30)
 
 
-  // Legg til info om når widget sist hentet prisen
+  // Add info about last update time
   d = new Date()
   let hour = d.getHours();
   let min = d.getMinutes();
@@ -310,29 +310,31 @@ async function createWidget() {
   let time = lw.addText("Oppdatert: " + pad(hour) + ":" + pad(min));
   time.centerAlignText();
   time.font = Font.lightSystemFont(12);
-  time.textColor = new Color(TEKSTFARGE);
-  
+  time.textColor = new Color(TEXTCOLOR);
+
   lw.addSpacer(5)
 
-  // Legg til "link"
+  // Add "link"
   let link = lw.addText("Datakilde: www.HvaKosterStrømmen.no");
   link.centerAlignText();
   link.font = Font.lightSystemFont(10);
-  link.textColor = new Color(TEKSTFARGE);
+  link.textColor = new Color(TEXTCOLOR);
 
   // Return the created widget
   return lw;
 }
 
 let widget = await createWidget();
+
+// When clicking on the widget, it should open the website of that zone
 let by = "trondheim";
-if (SONE == "NO1")
+if (ZONE == "NO1")
   by = "oslo";
-else if (SONE == "NO2")
+else if (ZONE == "NO2")
   by = "kristiansand"
-else if (SONE == "NO4")
+else if (ZONE == "NO4")
   by = "tromso"
-else if (SONE == "NO5")
+else if (ZONE == "NO5")
   by = "bergen"
 
 widget.url = 'https://www.hvakosterstrommen.no/i/'+by
