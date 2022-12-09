@@ -11,7 +11,7 @@ Data is fetched from a free API, which does not require any registration/user ac
 3. Press the text "Untitled Scripts" at the very top and change the name to "EnergyPriceWidget".
 4. Paste the code from [EnergyPriceWidget.js](/EnergyPriceWidget.js?raw=1) into "EnergyPriceWidget" in Scriptable
       <img src="/widget.jpg" width="500px" />
-5. In the script, set the correct zone (NO1, NO2, NO3, NO4 or NO5) and set the value for øre/kWh your power company charges in addition to the spot price from Nord pool.
+5. In the script, set the correct zone and set the value for øre/kWh your power company charges in addition to the spot price from Nord pool.
 6. Close the "Scriptable" app and press and hold on the home screen where you want the widget (so the apps start "shaking"), press the "+" on the top left, select "Scriptable". Choose large widget and press "Add widget".
 7. Widget is now there with "Select script in widget configurator". Tap and hold on it and select "Edit Widget".
 8. For "Script", select "EnergyPriceWidget"
