@@ -1,10 +1,14 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
+// icon-color: deep-green; icon-glyph: bolt;
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
 // icon-color: green; icon-glyph: bolt;
 // EnergyPriceWidget
 // v1.0.0 - first version - Sven-Ove Bjerkan
 // v1.0.1 - translated to English
 // v1.1.0 - support for Sweden and Denmark
+// v1.2.0 - fix bug with months 1-9
 
 // What power-zone to display?
 // NORWAY:
@@ -101,19 +105,22 @@ let json, json2, json3, req;
 if (d.getHours()-HOURS_BACK < 0) {
   d2 = new Date()
   d2.setDate(d2.getDate()-1)
-  req = new Request("https://www." + URL + "/api/v1/prices/"+d2.getFullYear()+"/"+(d2.getMonth()+1)+"-"+pad(d2.getDate())+"_"+ZONE+".json")
+  req = new Request("https://www." + URL + "/api/v1/prices/"+d2.getFullYear()+"/"+pad(d2.getMonth()+1)+"-"+pad(d2.getDate())+"_"+ZONE+".json")
   json = await req.loadString()
 }
 
 // Fetch today
-req = new Request("https://www." + URL + "/api/v1/prices/"+d.getFullYear()+"/"+(d.getMonth()+1)+"-"+pad(d.getDate())+"_"+ZONE+".json")
+req = new Request("https://www." + URL + "/api/v1/prices/"+d.getFullYear()+"/"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"_"+ZONE+".json")
 json2 = await req.loadString()
 
 // Fetch tomorrow (if time is after 13:00 and HOURS_FORWARD points beyond midnight)
 if (d.getHours() >= 13 && d.getHours() + HOURS_FORWARD > 23) {
   d2 = new Date()
   d2.setDate(d2.getDate()+1)
-  req = new Request("https://www." + URL + "/api/v1/prices/"+d2.getFullYear()+"/"+(d2.getMonth()+1)+"-"+pad(d2.getDate())+"_"+ZONE+".json")
+  let month = (d2.getMonth()+1);
+  if (month == 13)
+    month = 1
+  req = new Request("https://www." + URL + "/api/v1/prices/"+d2.getFullYear()+"/"+pad(month)+"-"+pad(d2.getDate())+"_"+ZONE+".json")
   json3 = await req.loadString()
 }
 
@@ -377,19 +384,9 @@ async function createWidget() {
 
 let widget = await createWidget();
 
-// When clicking on the widget, it should open the website of that zone
+// When clicking on the widget, it should open the website of that zone (only working on the norwegian site)
 if (COUNTRY == "NO") {
-	let by = "trondheim";
-	if (ZONE == "NO1")
-	  by = "oslo";
-	else if (ZONE == "NO2")
-	  by = "kristiansand"
-	else if (ZONE == "NO4")
-	  by = "tromso"
-	else if (ZONE == "NO5")
-	  by = "bergen"
-
-	widget.url = 'https://www.' + URL + '/i/'+by
+	widget.url = 'https://www.hvakosterstrommen.no/sone/' + ZONE;
 }
 else {
 	widget.url = 'https://www.' + URL
