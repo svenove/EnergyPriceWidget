@@ -10,6 +10,8 @@
 // v1.1.0 - support for Sweden and Denmark
 // v1.2.0 - fix bug with months 1-9
 // v1.3.0 - Norway: strømstøtte
+// v1.3.1 - Show diff (thanks, @bjornbb!)
+// v1.3.2 - Option to always start graph at zero (thanks, @bjornbb!)
 
 // What power-zone to display?
 // NORWAY:
@@ -36,6 +38,9 @@ const ADDITION = 1;
 
 // NORWAY: show price after substracting "strømstøtte"?
 const STOTTE = true;
+
+// Start graph at zero?
+const START_ZERO = false;
 
 // Mark midnight with at dot in the graph? (true/false)
 const MIDNGHT = false;
@@ -187,7 +192,7 @@ for (let i = iStart; i <= iEnd; i++) {
   // NORWAY: strømstøtte
   if (COUNTRY == "NO" && STOTTE && allPrices[i].per_kWh > 0.73)
 	  allPrices[i].per_kWh = (allPrices[i].per_kWh-0.73)*0.1+0.73;
-	  
+
 
   // Add 25% taxes if not zone=NO4
   if (ZONE != "NO4")
@@ -284,7 +289,7 @@ url += encodeURI("{ \
          yAxes:[ \
             { \
                ticks:{ \
-                  beginAtZero:false, \
+                  beginAtZero:" + START_ZERO + ", \
                   fontSize:100, \
                   fontColor:'white' \
                } \
@@ -344,11 +349,23 @@ async function createWidget() {
   maxmin.font = Font.lightSystemFont(12);
   maxmin.textColor = new Color(TEXTCOLOR);
 
+  // Add diff price above the graph
+  let diff = lw.addText("Diff: " + (maxPrice-minPrice) + " " + L['ore'] + "/kWh")
+  diff.centerAlignText()
+  diff.font = Font.lightSystemFont(12);
+  // Define text color based on price
+  if ((maxPrice-minPrice) < 25)
+    diff.textColor = new Color(TEXTCOLOR_LOW)
+  else if ((maxPrice-minPrice) > 50)
+    diff.textColor = new Color(TEXTCOLOR_HIGH)
+  else
+    diff.textColor = new Color(TEXTCOLOR);
+
   // A bit of space above graph
   lw.addSpacer(25)
 
   let overskrift = L['timepriser'];
-	if (STOTTE) 
+	if (STOTTE)
 	  overskrift += " (etter strømstøtte)"
   if (ZONE == "NO4")
     overskrift += " (eks MVA)"
@@ -385,7 +402,7 @@ async function createWidget() {
 
   // Add "link"
   let link = lw.addText(L['datakilde'] + ": www." + URL);
-  link.centerAlignText();<
+  link.centerAlignText();
   link.font = Font.lightSystemFont(10);
   link.textColor = new Color(TEXTCOLOR);
 
@@ -413,4 +430,4 @@ if (config.runsInWidget) {
   // Show the medium widget inside the app
   widget.presentLarge();
 }
-Script.complete();<
+Script.complete();
