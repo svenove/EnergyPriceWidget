@@ -9,6 +9,7 @@
 // v1.0.1 - translated to English
 // v1.1.0 - support for Sweden and Denmark
 // v1.2.0 - fix bug with months 1-9
+// v1.3.0 - Norway: strømstøtte
 
 // What power-zone to display?
 // NORWAY:
@@ -32,6 +33,9 @@ const ZONE = "NO3";
 
 // The additional cost your powercompany charges for the power, in øre. Usually 0-5 øre.
 const ADDITION = 1;
+
+// NORWAY: show price after substracting "strømstøtte"?
+const STOTTE = true;
 
 // Mark midnight with at dot in the graph? (true/false)
 const MIDNGHT = false;
@@ -180,6 +184,10 @@ for (let i = iStart; i <= iEnd; i++) {
  else if (COUNTRY == "DK")
 	    allPrices[i].per_kWh = allPrices[i].DKK_per_kWh
 
+  // NORWAY: strømstøtte
+  if (COUNTRY == "NO" && STOTTE && allPrices[i].per_kWh > 0.73)
+	  allPrices[i].per_kWh = (allPrices[i].per_kWh-0.73)*0.1+0.73;
+	  
 
   // Add 25% taxes if not zone=NO4
   if (ZONE != "NO4")
@@ -294,6 +302,7 @@ url += encodeURI("{ \
    } \
 }")
 
+
 const GRAPH = await new Request(url).loadImage()
 
 
@@ -339,6 +348,8 @@ async function createWidget() {
   lw.addSpacer(25)
 
   let overskrift = L['timepriser'];
+	if (STOTTE) 
+	  overskrift += " (etter strømstøtte)"
   if (ZONE == "NO4")
     overskrift += " (eks MVA)"
   graphTxt = lw.addText(overskrift);
@@ -374,7 +385,7 @@ async function createWidget() {
 
   // Add "link"
   let link = lw.addText(L['datakilde'] + ": www." + URL);
-  link.centerAlignText();
+  link.centerAlignText();<
   link.font = Font.lightSystemFont(10);
   link.textColor = new Color(TEXTCOLOR);
 
@@ -402,4 +413,4 @@ if (config.runsInWidget) {
   // Show the medium widget inside the app
   widget.presentLarge();
 }
-Script.complete();
+Script.complete();<
